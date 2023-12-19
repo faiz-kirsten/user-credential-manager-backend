@@ -394,7 +394,7 @@ const Home = () => {
                             <button
                                 className="user-info-btn"
                                 onClick={openCreateForm}>
-                                Add User Credential
+                                Add Credential
                             </button>
                         </div>
                     </div>
