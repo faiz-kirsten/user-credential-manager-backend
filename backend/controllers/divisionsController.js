@@ -1,9 +1,7 @@
 import {
-    UserModel,
     CredentialModel,
     CredentialRepoModel,
     DivisionModel,
-    OrganisationalUnitModel,
 } from "../models/models.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
