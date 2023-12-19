@@ -26,7 +26,7 @@ const Home = () => {
         try {
             // Fetch data from the specified endpoint using the provided token and user agent
             const response = await fetch(
-                `http://localhost:5555/credential-repo`,
+                `http://localhost:5555/divisions/division/credential-repo`,
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem(
@@ -67,9 +67,6 @@ const Home = () => {
 
             // Parse the response data
             const data = await response.json();
-            // Set the current user's role and update user data state variables
-            // setCurrentUser(data);
-            console.log(data);
             setUsers(data.users);
             setLoading(false);
         } catch (err) {
@@ -141,7 +138,7 @@ const Home = () => {
 
             // Make a POST request to the server's registration endpoint
             const response = await fetch(
-                `http://localhost:5555/credential`,
+                `http://localhost:5555/divisions/division/credential-repo/credential/add`,
                 requestOptions
             );
 
@@ -217,7 +214,7 @@ const Home = () => {
 
             // Fetch and update the job on the server
             const response = await fetch(
-                `http://localhost:5555/credential/${editCredentialId}`,
+                `http://localhost:5555/divisions/division/credential-repo/credential/${editCredentialId}/update`,
                 requestOptions
             );
 
@@ -274,7 +271,7 @@ const Home = () => {
 
             // Fetch and update the user's role on the server
             const response = await fetch(
-                `http://localhost:5555/user/role/update/${editUserId}`,
+                `http://localhost:5555/users/user/${editUserId}/role/update/`,
                 requestOptions
             );
 
@@ -313,7 +310,7 @@ const Home = () => {
 
     const handleChangeDivision = async (e) => {
         e.preventDefault();
-        // setLoading(true);
+        setLoading(true);
 
         // Prepare user information for the PUT request
         const userInfo = {
@@ -333,7 +330,7 @@ const Home = () => {
 
             // Fetch and update the user's division on the server
             const response = await fetch(
-                `http://localhost:5555/user/division/update/${editUserId}`,
+                `http://localhost:5555/users/user/${editUserId}/division/update`,
                 requestOptions
             );
 

@@ -46,7 +46,7 @@ const AuthenticateUser = () => {
 
             // Fetch and update the job status
             const response = await fetch(
-                `http://localhost:5555/login`,
+                `http://localhost:5555/access/login`,
                 requestOptions
             );
 
@@ -117,7 +117,7 @@ const AuthenticateUser = () => {
 
             // Fetch and update the job status
             const response = await fetch(
-                `http://localhost:5555/register`,
+                `http://localhost:5555/access/register`,
                 requestOptions
             );
 
