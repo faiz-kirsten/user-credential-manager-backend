@@ -36,7 +36,6 @@ app.post("/login", async (req, res) => {
     // generates a jwt for the valid user
     if (user) {
         let payload = user;
-        console.log(payload);
         const token = jwt.sign(JSON.stringify(payload), "jwt-secret", {
             algorithm: "HS256",
         });
@@ -56,7 +55,7 @@ app.post("/login", async (req, res) => {
 // Route to handle user registration, generating a unique username and adding user to the credential repository of their division
 app.post("/register", async (req, res) => {
     // Extracting user input from the request body
-    const divisionIdInput = req.body.divisionId;
+    const divisionIdInput = req.body._divisionId;
     const nameInput = req.body.name;
     const surnameInput = req.body.surname;
     const passwordInput = req.body.password;
@@ -85,23 +84,10 @@ app.post("/register", async (req, res) => {
         role: "normal",
     };
 
+    console.log(newUser);
+
     // Create the user in the database using the UserModel
-    // const user = await UserModel.create(newUser);
-
-    // Retrieve the new user's division ID and user ID
-    // const newUserDivisionId = user._divisionId;
-    // const newUserId = user._id;
-
-    // Find the credential repository for the user's division
-    // const divisionCredRepo = await CredentialRepoModel.findOne({
-    //     _divisionId: newUserDivisionId,
-    // });
-
-    // Add the user's ID to the array within 'divisionCredRepo' as another iteration
-    // divisionCredRepo._credentialIds.push(newUserId);
-
-    // Save the updated credential repository
-    // await divisionCredRepo.save();
+    const user = await UserModel.create(newUser);
 
     // Respond with a success message and the created username
     return res.status(201).send({
@@ -136,8 +122,10 @@ app.get("/credential-repo", async (req, res) => {
         // Iterate through all the user IDs in the credential repository
         for (const credentialId of credentialRepo._credentialIds) {
             // Find and add user information to the 'users' array
-            const credential = await CredentialModel.findById(credentialId);
-            if (credential) {
+            const credential = await CredentialModel.findById(
+                credentialId
+            ).populate("_userId");
+            if (credential.archived !== true) {
                 credentials.push(credential);
             }
         }
@@ -145,18 +133,218 @@ app.get("/credential-repo", async (req, res) => {
         let credentialsCount = credentials.length;
 
         // Respond with division information and user details if users are present
-        if (credentials.length > 0) {
-            res.send({
-                divisionName: divisionName,
-                divisionOuName: divisionOuName,
-                divisionId: decoded._divisionId,
-                credentialsCount: credentialsCount,
-                currentUser: decoded,
-                credentials: credentials,
+
+        res.status(201).send({
+            divisionName: divisionName,
+            divisionOuName: divisionOuName,
+            divisionId: decoded._divisionId,
+            credentialsCount: credentialsCount,
+            currentUser: decoded,
+            credentials: credentials,
+        });
+    } catch (err) {
+        // Handle unauthorized access with a 401 status and appropriate message
+        res.status(401).send({ message: "Invalid Auth Token!" });
+    }
+});
+
+// Get divisions
+app.get("/divisions", async (req, res) => {
+    const divisions = await DivisionModel.find({}).populate(
+        "_organisationalUnitId"
+    );
+    // console.log(divisions);
+    res.status(201).send({ divisions: divisions });
+});
+
+// Route to handle user registration, generating a unique username and adding user to the credential repository of their division
+app.post("/credential", async (req, res) => {
+    // Extracting user input from the request body
+    const divisionIdInput = req.body._divisionId;
+    const platformInput = req.body.platform;
+    const passwordInput = req.body.password;
+    const userIdInput = req.body._userId;
+
+    // Create a new user object with the provided information
+    const newCredential = {
+        platform: platformInput,
+        _divisionId: new mongoose.Types.ObjectId(divisionIdInput),
+        _userId: new mongoose.Types.ObjectId(userIdInput),
+        password: passwordInput,
+        archived: false,
+    };
+
+    // Create the user in the database using the UserModel
+    const credential = await CredentialModel.create(newCredential);
+
+    // Retrieve the new user's division ID and user ID
+    const newCredentialDivisionId = credential._divisionId;
+    const newCredentialId = credential._id;
+
+    // Find the credential repository for the user's division
+    const divisionCredRepo = await CredentialRepoModel.findOne({
+        _divisionId: newCredentialDivisionId,
+    });
+
+    // Add the user's ID to the array within 'divisionCredRepo' as another iteration
+    divisionCredRepo._credentialIds.push(newCredentialId);
+
+    // Save the updated credential repository
+    await divisionCredRepo.save();
+
+    // Respond with a success message and the created username
+    return res.status(201).send({
+        message: `Credential Added Successful. `,
+    });
+});
+
+// Route to update user credentials based on user ID
+
+app.put("/credential/:id", async (req, res) => {
+    // Extracting the JWT token from the request headers
+    const token = req.headers["authorization"].split(" ")[1];
+
+    try {
+        // Verify and decode the JWT token using the provided secret
+        const decoded = jwt.verify(token, "jwt-secret");
+
+        // Check if the decoded user has the "normal" role; deny access if true
+        if (decoded.role === "normal") {
+            return res.status(403).send({
+                message: "Unauthorized",
             });
         } else {
-            // Respond with a message if no users are found in the division
-            res.send({ message: "No credentials in the division!" });
+            // Extract the user ID from the request parameters
+            const { id } = req.params;
+
+            // Update the user by finding its ID and applying the request body
+            const result = await CredentialModel.findByIdAndUpdate(
+                id,
+                req.body
+            );
+
+            // Respond with a 404 status and message if the user is not found
+            if (!result) {
+                return res
+                    .status(404)
+                    .json({ message: "Credential not found" });
+            }
+
+            // Respond with a success message if the user is updated successfully
+            return res
+                .status(200)
+                .send({ message: "Credential updated successfully" });
+
+            // Note: If the name or surname are edited, a new username should be generated
+        }
+    } catch (err) {
+        // Handle unauthorized access with a 401 status and appropriate message
+        res.status(401).send({ message: "Invalid Auth Token!" });
+    }
+});
+
+// Get users
+app.get("/users", async (req, res) => {
+    const users = await UserModel.find({}).populate("_divisionId");
+    // console.log(divisions);
+    res.status(201).send({ users: users });
+});
+
+// Route to change the role of a user, accessible to admin users
+
+app.put("/user/role/update/:id", async (req, res) => {
+    // Extracting the JWT token from the request headers
+    const token = req.headers["authorization"].split(" ")[1];
+
+    try {
+        // Verify and decode the JWT token using the provided secret
+        const decoded = jwt.verify(token, "jwt-secret");
+
+        // Check if the decoded user has the "admin" role; deny access if not
+        if (decoded.role !== "admin") {
+            return res.status(403).send({
+                message: "Unauthorized",
+            });
+        } else {
+            // Extract the user ID from the request parameters
+            const { id } = req.params;
+
+            // Update the user by finding its ID and applying the request body
+            const result = await UserModel.findByIdAndUpdate(id, req.body);
+
+            // Respond with a 404 status and message if the user is not found
+            if (!result) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            // Respond with a success message if the user is updated successfully
+            return res
+                .status(200)
+                .send({ message: "User role updated successfully" });
+
+            // Note: If the name or surname are edited, a new username should be generated
+        }
+    } catch (err) {
+        // Handle unauthorized access with a 401 status and appropriate message
+        res.status(401).send({ message: "Invalid Auth Token!" });
+    }
+});
+
+// Route to assign or remove users from divisions, accessible to admin users
+
+app.put("/user/division/update/:id", async (req, res) => {
+    // Extracting the JWT token from the request headers
+    const token = req.headers["authorization"].split(" ")[1];
+
+    try {
+        // Verify and decode the JWT token using the provided secret
+        const decoded = jwt.verify(token, "jwt-secret");
+
+        // Check if the decoded user has the "admin" role; deny access if not
+        if (decoded.role !== "admin") {
+            return res.status(403).send({
+                message: "Unauthorized",
+            });
+        } else {
+            // Extract the user ID from the request parameters
+            const { id } = req.params;
+
+            // Prepare the new division information from the request body
+            const newDivisionId = req.body._divisionId;
+
+            // Find the user's current division
+            const user = await UserModel.findById(id);
+            let userCurrentDivisionId = user._divisionId;
+            // res.send(userCurrentDivisionId);
+
+            const oldDivisionCredentials = await CredentialModel.updateMany(
+                {
+                    _userId: new mongoose.Types.ObjectId(id),
+                    _divisionId: new mongoose.Types.ObjectId(
+                        userCurrentDivisionId
+                    ),
+                },
+                { archived: true }
+            );
+            // const oldUserCredentials = await CredentialModel.find({
+            //     _userId: id,
+            //     _divisionId: userCurrentDivisionId,
+            // });
+
+            // res.send(oldUserCredentials);
+            // Update the user's division ID with the new division information
+            const result = await UserModel.findByIdAndUpdate(id, req.body);
+
+            const newDivisionCredentials = await CredentialModel.updateMany(
+                {
+                    _userId: new mongoose.Types.ObjectId(id),
+                    _divisionId: new mongoose.Types.ObjectId(newDivisionId),
+                },
+                { archived: false }
+            );
+
+            // Respond with a success message upon successful user division change
+            res.send({ message: "User division successfully changed." });
         }
     } catch (err) {
         // Handle unauthorized access with a 401 status and appropriate message
