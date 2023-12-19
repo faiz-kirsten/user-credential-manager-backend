@@ -14,10 +14,12 @@ const Home = () => {
     const [editCredentialPassword, setEditCredentialPassword] = useState("");
     const [editCredentialId, setEditCredentialId] = useState("");
     const [editUserRole, setEditUserRole] = useState("");
+    const [editUserDivision, setEditUserDivision] = useState("");
     const [editUserId, setEditUserId] = useState("");
     // create user form input state
     const [createPlatform, setCreatePlatform] = useState("");
     const [createUserPassword, setCreateUserPassword] = useState("");
+    const [divisions, setDivisions] = useState([]);
     const navigate = useNavigate(); // used to navigate to the credential route
 
     const fetchCredentialRepo = async () => {
@@ -46,6 +48,7 @@ const Home = () => {
             // Set the current user's role and update user data state variables
             setCredentialRepoInfo(data);
             fetchUsers();
+            getDivisions();
         } catch (err) {
             // Handle errors and log them to the console
             console.log(err);
@@ -287,6 +290,87 @@ const Home = () => {
         }
     };
 
+    // change user division
+    const openChangeDivisionForm = (user) => {
+        setEditUserDivision(user._divisionId._id);
+        setEditUserId(user._id);
+        const createFromModalElement = document.querySelector(
+            "#edit-division-form"
+        );
+
+        createFromModalElement.showModal();
+    };
+
+    const closeChangeDivisionForm = () => {
+        const createFromModalElement = document.querySelector(
+            "#edit-division-form"
+        );
+
+        createFromModalElement.close();
+    };
+
+    // Function to handle the change of a user's division by making a PUT request to the server
+
+    const handleChangeDivision = async (e) => {
+        e.preventDefault();
+        // setLoading(true);
+
+        // Prepare user information for the PUT request
+        const userInfo = {
+            _divisionId: editUserDivision,
+        };
+
+        try {
+            // Request options for the update
+            const requestOptions = {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify(userInfo),
+            };
+
+            // Fetch and update the user's division on the server
+            const response = await fetch(
+                `http://localhost:5555/user/division/update/${editUserId}`,
+                requestOptions
+            );
+
+            // Parse the response data
+            const data = await response.json();
+
+            // Update loading status and trigger a refresh of the credential repository data
+            fetchCredentialRepo();
+        } catch (err) {
+            // Handle errors, update loading status, and log them to the console
+            setLoading(false);
+            console.log(err);
+        }
+    };
+
+    const getDivisions = async () => {
+        try {
+            // Fetch data from the specified endpoint using the provided token and user agent
+            const response = await fetch(`http://localhost:5555/divisions`);
+
+            // Throw an error if the response is not successful
+            if (!response.ok) {
+                throw Error("Did not receive expected data.");
+            }
+
+            // Parse the response data
+            const data = await response.json();
+            setDivisions(data.divisions);
+            // console.log(data.divisions[0]._organisationalUnitId.name);
+            setLoading(false);
+        } catch (err) {
+            // Handle errors and log them to the console
+            console.log(err);
+            setLoading(false);
+        }
+    };
+
     return (
         <div>
             {loading ? (
@@ -366,29 +450,6 @@ const Home = () => {
                                                     />
                                                 </td>
                                             )}
-                                            {/* {userData.currentUser.role ===
-                                                "admin" && (
-                                                <>
-                                                    <button
-                                                        className="user-table__button"
-                                                        onClick={() =>
-                                                            openChangeDivisionForm(
-                                                                user
-                                                            )
-                                                        }>
-                                                        D
-                                                    </button>
-                                                    <button
-                                                        class="user-table__button"
-                                                        onClick={() =>
-                                                            openUpdateRoleForm(
-                                                                user
-                                                            )
-                                                        }>
-                                                        R
-                                                    </button>
-                                                </>
-                                            )} */}
                                         </tr>
                                     )
                                 )}
@@ -433,7 +494,14 @@ const Home = () => {
                                                 {user._divisionId.name}
                                                 {credentialRepoInfo.currentUser
                                                     ._id !== user._id && (
-                                                    <MdEdit className="user-table-operation-icon user-table-operation-icon-flex" />
+                                                    <MdEdit
+                                                        className="user-table-operation-icon user-table-operation-icon-flex"
+                                                        onClick={() =>
+                                                            openChangeDivisionForm(
+                                                                user
+                                                            )
+                                                        }
+                                                    />
                                                 )}
                                             </td>
                                             <td className="user-table__data">
@@ -626,6 +694,47 @@ const Home = () => {
                         </form>
                         <button
                             onClick={closeUpdateRoleForm}
+                            className="form-submit-btn">
+                            Close
+                        </button>
+                    </dialog>
+
+                    <dialog id="edit-division-form">
+                        <h2>Edit Division</h2>
+                        <form
+                            onSubmit={handleChangeDivision}
+                            className="modal-form">
+                            <div className="form-controllers">
+                                <div className="form-controller">
+                                    <label className="form-label">
+                                        Division:
+                                    </label>
+                                    <select
+                                        value={editUserDivision}
+                                        onChange={(e) =>
+                                            setEditUserDivision(e.target.value)
+                                        }
+                                        className="form-input"
+                                        required>
+                                        {divisions.map((division, i) => (
+                                            <option
+                                                value={division._id}
+                                                key={i}>
+                                                {`${division._organisationalUnitId.name} -  ${division.name}`}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <input
+                                    type="submit"
+                                    value="Done"
+                                    className="form-submit-btn"
+                                />
+                            </div>
+                        </form>
+                        <button
+                            onClick={closeChangeDivisionForm}
                             className="form-submit-btn">
                             Close
                         </button>

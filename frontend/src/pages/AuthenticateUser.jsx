@@ -165,8 +165,8 @@ const AuthenticateUser = () => {
             // Parse the response data
             const data = await response.json();
             setDivisions(data.divisions);
-            // console.log(data.divisions[0]._organisationalUnitId.name);
             setLoading(false);
+            // console.log(data.divisions[0]._organisationalUnitId.name);
         } catch (err) {
             // Handle errors and log them to the console
             console.log(err);

@@ -326,12 +326,7 @@ app.put("/user/division/update/:id", async (req, res) => {
                 },
                 { archived: true }
             );
-            // const oldUserCredentials = await CredentialModel.find({
-            //     _userId: id,
-            //     _divisionId: userCurrentDivisionId,
-            // });
 
-            // res.send(oldUserCredentials);
             // Update the user's division ID with the new division information
             const result = await UserModel.findByIdAndUpdate(id, req.body);
 
