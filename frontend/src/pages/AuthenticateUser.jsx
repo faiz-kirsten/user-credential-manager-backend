@@ -183,7 +183,7 @@ const AuthenticateUser = () => {
                 <Loading />
             ) : (
                 <>
-                    <div className="demo-users-container">
+                    {/* <div className="demo-users-container">
                         <h3 className="authenticate-heading">Demo Users</h3>
                         <table className="demo-users">
                             <thead>
@@ -221,7 +221,7 @@ const AuthenticateUser = () => {
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
+                    </div> */}
                     <h2 className="authenticate-heading">Login</h2>
                     <form className="form-container" onSubmit={handleLogin}>
                         <div className="form-controllers">
