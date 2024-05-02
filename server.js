@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import { connectDB } from "./config/dbCon.js";
 import { corsOptions } from "./config/corsOptions.js";
+import { credentials } from "./middleware/credentials.js";
 const PORT = 5555;
 
 // import routes
@@ -14,8 +15,12 @@ import accessRoutes from "./routes/accessRoutes.js";
 
 const app = express();
 connectDB();
-// Cross Origin Resource Sharing
 
+// Handle options credentials check - before CORS!
+// and fetch cookies credentials requirement
+app.use(credentials);
+
+// Cross Origin Resource Sharing
 app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
