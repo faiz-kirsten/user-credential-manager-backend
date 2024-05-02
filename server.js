@@ -1,8 +1,11 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import bodyParser from "body-parser";
-import { PORT, mongoDBURL } from "./config.js";
+import { connectDB } from "./config/dbCon.js";
+import { corsOptions } from "./config/corsOptions.js";
+const PORT = 5555;
 
 // import routes
 import usersRoutes from "./routes/usersRoutes.js";
@@ -10,8 +13,11 @@ import divisionsRoutes from "./routes/divisionsRoutes.js";
 import accessRoutes from "./routes/accessRoutes.js";
 
 const app = express();
+connectDB();
+// Cross Origin Resource Sharing
 
-app.use(cors());
+app.use(cors(corsOptions));
+
 app.use(bodyParser.json());
 
 app.use("/users", usersRoutes); // use the usersRoutes
@@ -19,17 +25,12 @@ app.use("/access", accessRoutes); // use the accessRoutes
 app.use("/divisions", divisionsRoutes); // use the divisionsRoutes
 
 app.get("/", (req, res) => {
-    res.send("This is the home page");
+    res.send("API up and running...");
 });
 
-mongoose
-    .connect(mongoDBURL)
-    .then(() => {
-        console.log("App connected to database");
-        app.listen(PORT, () => {
-            console.log(`App is listening on port: http://localhost:${PORT}`);
-        });
-    })
-    .catch((err) => {
-        console.log(err);
-    });
+mongoose.connection.once("open", () => {
+    console.log("Connected to MongoDB");
+    app.listen(PORT, () =>
+        console.log(`Server running on port http://localhost:${PORT}`)
+    );
+});
