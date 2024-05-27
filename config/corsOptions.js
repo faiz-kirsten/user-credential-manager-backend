@@ -4,6 +4,7 @@ const allowedOrigins = [
     "http://localhost:3000",
 ];
 
+// remove !origin before deployment
 export const corsOptions = {
     origin: (origin, callback) => {
         if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
