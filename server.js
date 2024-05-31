@@ -9,9 +9,13 @@ import { credentials } from "./middleware/credentials.js";
 const PORT = 5555;
 
 // import routes
-import usersRoutes from "./routes/usersRoutes.js";
-import divisionsRoutes from "./routes/divisionsRoutes.js";
-import accessRoutes from "./routes/accessRoutes.js";
+// import usersRoutes from "./routes/usersRoutes.js";
+// import divisionsRoutes from "./routes/divisionsRoutes.js";
+// import accessRoutes from "./routes/accessRoutes.js";
+import registerRoute from "./routes/registerRoute.js";
+import userRoute from "./routes/user.js";
+import divisionRoute from "./routes/division.js";
+import loginRoute from "./routes/loginRoute.js";
 
 const app = express();
 connectDB();
@@ -29,6 +33,10 @@ app.use(bodyParser.json());
 // app.use("/users", usersRoutes); // use the usersRoutes
 // app.use("/access", accessRoutes); // use the accessRoutes
 // app.use("/divisions", divisionsRoutes); // use the divisionsRoutes
+app.use("/register", registerRoute);
+app.use("/login", loginRoute);
+app.use("/user", userRoute);
+app.use("/division", divisionRoute);
 
 app.get("/", (req, res) => {
     res.send("API up and running...");

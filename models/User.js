@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import Division from "./Division";
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema(
@@ -21,7 +20,8 @@ const userSchema = new Schema(
             required: true,
         },
         division: {
-            type: Division,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Division",
             default: null,
         },
         roles: {
@@ -37,4 +37,4 @@ const userSchema = new Schema(
     { collection: "Users" }
 );
 
-export default mongoose.model("User", userSchema);
+export const UserModel = mongoose.model("User", userSchema);
