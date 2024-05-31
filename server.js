@@ -26,9 +26,9 @@ app.use(cors());
 
 app.use(bodyParser.json());
 
-app.use("/users", usersRoutes); // use the usersRoutes
-app.use("/access", accessRoutes); // use the accessRoutes
-app.use("/divisions", divisionsRoutes); // use the divisionsRoutes
+// app.use("/users", usersRoutes); // use the usersRoutes
+// app.use("/access", accessRoutes); // use the accessRoutes
+// app.use("/divisions", divisionsRoutes); // use the divisionsRoutes
 
 app.get("/", (req, res) => {
     res.send("API up and running...");
