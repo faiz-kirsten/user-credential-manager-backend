@@ -36,7 +36,7 @@ export const handleLogin = async (req, res) => {
         });
     } else {
         res.status(403).send({
-            message: "Invalid password!",
+            message: "Invalid password username or password!",
         });
     }
 };

@@ -52,7 +52,7 @@ export const handleRegister = async (req, res) => {
         };
 
         // Create the user in the database using the UserModel
-        // const userDB = await UserModel.create(newUser);
+        const userDB = await UserModel.create(newUser);
 
         // Respond with a success message and the created username
         return res.status(201).send({
