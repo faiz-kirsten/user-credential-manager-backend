@@ -13,7 +13,7 @@ const PORT = 5555;
 // import divisionsRoutes from "./routes/divisionsRoutes.js";
 // import accessRoutes from "./routes/accessRoutes.js";
 import registerRoute from "./routes/registerRoute.js";
-import userRoute from "./routes/user.js";
+import userRoute from "./routes/userRoute.js";
 import divisionRoute from "./routes/division.js";
 import loginRoute from "./routes/loginRoute.js";
 
@@ -35,7 +35,7 @@ app.use(bodyParser.json());
 // app.use("/divisions", divisionsRoutes); // use the divisionsRoutes
 app.use("/register", registerRoute);
 app.use("/login", loginRoute);
-app.use("/user", userRoute);
+app.use("/users", userRoute);
 app.use("/division", divisionRoute);
 
 app.get("/", (req, res) => {

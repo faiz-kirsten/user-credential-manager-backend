@@ -17,7 +17,7 @@ export const handleLogin = async (req, res) => {
         username: enteredUsername,
     }).exec();
 
-    if (!foundUser) return res.status(401).send("Invalid Username!"); //Unauthorized
+    if (!foundUser) return res.status(403).send({ invalid: true }); //Unauthorized
 
     const validPassword = await bcrypt.compare(
         enteredPassword,
@@ -31,9 +31,8 @@ export const handleLogin = async (req, res) => {
         });
 
         // set the token to local storage on the client side
-        res.send({
+        res.status(200).send({
             token: token,
-            message: "Successful login",
         });
     } else {
         res.status(403).send({

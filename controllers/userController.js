@@ -7,6 +7,22 @@ import { UserModel } from "../models/User.js";
 // allow admin users to change user divisions and alter user roles
 // create a dashboard that shows all the actions that were taken, i.e. who edited a users credentials, who changed whos division... which only admins can view and access
 // when showing the credentials for the user - return the credentials where the division the current user is logged is the same and the userId is the same as the users Id that was clicked on
+
+// verify with jwt
+export const getUsers = async (req, res) => {
+    const users = await UserModel.find({}).populate("division");
+
+    return res.status(201).send({ users });
+};
+
+export const getUsernames = async (req, res) => {
+    const users = await UserModel.find({}).populate("division");
+
+    const usernames = users.map((user) => user.username);
+
+    return res.status(201).send({ usernames });
+};
+
 export const getUser = async (req, res) => {
     const { id } = req.params;
     if (id.length !== 24)
