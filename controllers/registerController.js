@@ -56,7 +56,7 @@ export const handleRegister = async (req, res) => {
 
         // Respond with a success message and the created username
         return res.status(201).send({
-            message: `Registration successful, redirecting to login page...`,
+            message: `Success, redirecting to login page...`,
             username: enteredUsername,
             ok: true,
         });
