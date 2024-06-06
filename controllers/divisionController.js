@@ -50,8 +50,6 @@ export const getDivision = async (req, res) => {
     );
     // console.log(filteredUsers);
 
-    // const updatedDivisions = { ...foundDivision, _userIds: filteredUsers };
-
     return res.status(200).send({
         divisionDetails: foundDivision,
         currentUser: decoded,

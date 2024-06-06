@@ -36,7 +36,7 @@ app.use(bodyParser.json());
 app.use("/register", registerRoute);
 app.use("/login", loginRoute);
 app.use("/users", userRoute);
-app.use("/division", divisionRoute);
+app.use("/divisions", divisionRoute);
 
 app.get("/", (req, res) => {
     res.send("API up and running...");

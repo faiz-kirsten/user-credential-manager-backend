@@ -1,7 +1,9 @@
+import mongoose from "mongoose";
 import { ROLES_LIST } from "../config/roles_list.js";
 import { UserModel } from "../models/User.js";
 import { verifyJWT } from "../utils/verifyJWT.js";
 import { verifyRoles } from "../utils/verifyRoles.js";
+import { DivisionModel } from "../models/Division.js";
 
 // allow normal users to add credentials
 // allow management & admin users to:
@@ -57,4 +59,55 @@ export const getUser = async (req, res) => {
     }).populate("division");
     if (!foundUser) return res.status(400).send({ message: "Invalid user id" });
     return res.status(200).send(foundUser);
+};
+
+export const getUserDivision = async (req, res) => {
+    if (!req.headers["authorization"]?.startsWith("Bearer "))
+        return res.sendStatus(401);
+    // Extracting the JWT token from the request headers
+    const token = req.headers["authorization"].split(" ")[1];
+    if (token === "")
+        return res.status(401).send({ message: "Invalid Auth Token!" });
+    const decoded = verifyJWT(token);
+    if (decoded === false)
+        return res.status(401).send({ message: "Invalid Auth Token!" });
+    // console.log(decoded);
+
+    if (decoded.division === null || decoded.roles.length === 1)
+        return res.status(200).send({ currentUser: decoded });
+    // verify user roles
+    const validRole = verifyRoles(decoded.roles, [
+        ROLES_LIST[1],
+        ROLES_LIST[2],
+    ]);
+
+    // console.log(validRole);
+    if (!validRole)
+        return res.status(403).send({
+            message: "Unauthorized",
+        });
+
+    // const { id } = req.params;
+    // if (id.length !== 24)
+    //     return res.status(400).send({ message: "Invalid division id" });
+
+    const foundDivision = await DivisionModel.findOne({
+        _id: new mongoose.Types.ObjectId(decoded.division),
+    })
+        .populate("_userIds")
+        .populate("_requestedUserIds");
+
+    if (!foundDivision)
+        return res.status(400).send({ message: "Invalid division id" });
+    // console.log(foundDivision);
+    const filteredUsers = foundDivision._userIds.filter(
+        (user) => user.username !== decoded.username
+    );
+    // console.log(filteredUsers);
+
+    return res.status(200).send({
+        divisionDetails: foundDivision,
+        currentUser: decoded,
+        otherUsers: filteredUsers,
+    });
 };
