@@ -5,7 +5,7 @@ import {
     getDivisions,
     addCredential,
     updateCredential,
-} from "../controllers/divisionsController.js";
+} from "../../controllers/old/divisionsController.js";
 
 const router = express.Router();
 

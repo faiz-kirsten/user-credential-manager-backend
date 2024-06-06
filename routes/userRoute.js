@@ -7,10 +7,8 @@ import {
 
 const router = express.Router();
 
-router.get("/", getUsers);
-
 router.get("/usernames", getUsernames);
-
+router.get("/", getUsers);
 router.route("/:id").get(getUser);
 
 export default router;

@@ -14,7 +14,7 @@ const PORT = 5555;
 // import accessRoutes from "./routes/accessRoutes.js";
 import registerRoute from "./routes/registerRoute.js";
 import userRoute from "./routes/userRoute.js";
-import divisionRoute from "./routes/division.js";
+import divisionRoute from "./routes/divisionRoute.js";
 import loginRoute from "./routes/loginRoute.js";
 
 const app = express();

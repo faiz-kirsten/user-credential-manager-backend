@@ -4,7 +4,7 @@ import {
     getUsers,
     updateUserRole,
     updateUserDivision,
-} from "../controllers/usersController.js";
+} from "../../controllers/old/usersController.js";
 
 const router = express.Router();
 

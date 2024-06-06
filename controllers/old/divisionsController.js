@@ -2,7 +2,7 @@ import {
     CredentialModel,
     CredentialRepoModel,
     DivisionModel,
-} from "../models/models.js";
+} from "../../models/models.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 
