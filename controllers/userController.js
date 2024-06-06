@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { ROLES_LIST } from "../config/roles_list.js";
 import { UserModel } from "../models/User.js";
+import { CredentialModel } from "../models/Credential.js";
 import { verifyJWT } from "../utils/verifyJWT.js";
 import { verifyRoles } from "../utils/verifyRoles.js";
 import { DivisionModel } from "../models/Division.js";
@@ -44,13 +45,16 @@ export const getUser = async (req, res) => {
     // verify user roles
     const validRole = verifyRoles(decoded.roles, [ROLES_LIST[2]]);
 
+    const { id } = req.params;
+    console.log(id);
+    console.log(decoded._id);
+
     console.log(validRole);
-    if (!validRole)
+    if (!validRole && id !== decoded._id)
         return res.status(403).send({
             message: "Unauthorized",
         });
 
-    const { id } = req.params;
     if (id.length !== 24)
         return res.status(400).send({ message: "Invalid user id" });
 
@@ -110,4 +114,40 @@ export const getUserDivision = async (req, res) => {
         currentUser: decoded,
         otherUsers: filteredUsers,
     });
+};
+
+export const getUserCredentials = async (req, res) => {
+    if (!req.headers["authorization"]?.startsWith("Bearer "))
+        return res.sendStatus(401);
+    // Extracting the JWT token from the request headers
+    const token = req.headers["authorization"].split(" ")[1];
+    if (token === "")
+        return res.status(401).send({ message: "Invalid Auth Token!" });
+    const decoded = verifyJWT(token);
+    if (decoded === false)
+        return res.status(401).send({ message: "Invalid Auth Token!" });
+    console.log(decoded);
+    // verify user roles
+    const validRole = verifyRoles(decoded.roles, [
+        ROLES_LIST[1],
+        ROLES_LIST[2],
+    ]);
+
+    const { id } = req.params;
+    const currentUserDivisionId = req.query.division;
+
+    console.log(id);
+    console.log(currentUserDivisionId);
+
+    console.log(validRole);
+    if (!validRole && id !== decoded._id)
+        return res.status(403).send({
+            message: "Unauthorized",
+        });
+    const foundCredentials = await CredentialModel.find({
+        _userId: id,
+        _divisionId: currentUserDivisionId,
+    });
+
+    return res.status(200).send({ credentials: foundCredentials });
 };
