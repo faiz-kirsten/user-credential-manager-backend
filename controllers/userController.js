@@ -144,10 +144,15 @@ export const getUserCredentials = async (req, res) => {
         return res.status(403).send({
             message: "Unauthorized",
         });
+    const foundUser = await UserModel.findOne({ _id: id }).populate("division");
     const foundCredentials = await CredentialModel.find({
         _userId: id,
         _divisionId: currentUserDivisionId,
     });
 
-    return res.status(200).send({ credentials: foundCredentials });
+    return res.status(200).send({
+        user: foundUser,
+        credentials: foundCredentials,
+        currentUser: decoded,
+    });
 };
