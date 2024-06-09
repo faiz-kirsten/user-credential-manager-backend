@@ -27,7 +27,6 @@ const userSchema = new Schema(
         requestedDivision: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Division",
-            default: null,
         },
         roles: {
             type: [String],

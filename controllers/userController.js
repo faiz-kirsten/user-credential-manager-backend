@@ -179,20 +179,23 @@ export const updateUser = async (req, res) => {
         });
         division._requestedUserIds.push(new mongoose.Types.ObjectId(id));
         await division.save();
-        await UserModel.findOneAndUpdate(
+        const updatedUserDivision = await UserModel.findOneAndUpdate(
             { _id: id },
-            { requestedDivision: requestBody.selectedDivision }
-        );
+            { requestedDivision: requestBody.selectedDivision },
+            {
+                new: true,
+            }
+        ).populate("requestedDivision");
 
         return res.send({
             success: `You have sent a request to join the ${division.name} division.`,
+            currentUser: updatedUserDivision,
         });
     }
 
     return res.send({
         selectingdivision: selectingDivision,
         reqBody: requestBody,
-        selectedDivision: selectedDivision,
         currentUserId: id,
     });
 };

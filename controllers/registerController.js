@@ -1,4 +1,6 @@
 import { UserModel } from "../models/User.js";
+import { DivisionModel } from "../models/Division.js";
+import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
 export const handleRegister = async (req, res) => {
@@ -6,6 +8,7 @@ export const handleRegister = async (req, res) => {
     const enteredSurname = req.body.surname;
     const enteredUsername = req.body.username;
     const enteredPassword = req.body.password;
+    const enteredDivision = req.body.requestedDivision;
     const confirmedPassword = req.body.confirmedPassword;
     const enteredTitle = req.body.title;
 
@@ -15,7 +18,8 @@ export const handleRegister = async (req, res) => {
         !enteredUsername ||
         !enteredPassword ||
         !confirmedPassword ||
-        !enteredTitle
+        !enteredTitle ||
+        !enteredDivision
     ) {
         return res.status(400).send({
             message: "All required fields not entered",
@@ -40,6 +44,12 @@ export const handleRegister = async (req, res) => {
             ok: false,
         });
 
+    if (enteredDivision === "default")
+        return res.status(400).send({
+            message: "No division was selected",
+            ok: false,
+        });
+
     try {
         const hashedPwd = await bcrypt.hash(enteredPassword, 10);
 
@@ -49,10 +59,22 @@ export const handleRegister = async (req, res) => {
             password: hashedPwd,
             username: enteredUsername,
             title: enteredTitle,
+            requestedDivision: new mongoose.Types.ObjectId(enteredDivision),
         };
+
+        console.log(newUser);
 
         // Create the user in the database using the UserModel
         const userDB = await UserModel.create(newUser);
+
+        const division = await DivisionModel.findOne({
+            _id: enteredDivision,
+        });
+
+        division._requestedUserIds.push(
+            new mongoose.Types.ObjectId(userDB._id)
+        );
+        await division.save();
 
         // Respond with a success message and the created username
         return res.status(201).send({
