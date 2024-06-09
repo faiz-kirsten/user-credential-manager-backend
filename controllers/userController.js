@@ -104,15 +104,30 @@ export const getUserDivision = async (req, res) => {
     if (!foundDivision)
         return res.status(400).send({ message: "Invalid division id" });
     // console.log(foundDivision);
-    const filteredUsers = foundDivision._userIds.filter(
+    const otherUsers = foundDivision._userIds.filter(
         (user) => user.username !== decoded.username
     );
     // console.log(filteredUsers);
 
+    // requestedUsers
+    const isAdmin = verifyRoles(decoded.roles, [ROLES_LIST[2]]);
+
+    if (isAdmin) {
+        const requestedUsers = await UserModel.find({
+            requestedDivision: decoded.division,
+        });
+        return res.status(200).send({
+            divisionDetails: foundDivision,
+            currentUser: decoded,
+            otherUsers: otherUsers,
+            requestedUsers: requestedUsers,
+        });
+    }
+
     return res.status(200).send({
         divisionDetails: foundDivision,
         currentUser: decoded,
-        otherUsers: filteredUsers,
+        otherUsers: otherUsers,
     });
 };
 
@@ -168,30 +183,28 @@ export const updateUser = async (req, res) => {
     if (decoded === false)
         return res.status(401).send({ message: "Invalid Auth Token!" });
     console.log(decoded);
-    const selectingDivision = req.query.selectingDivision;
-    // const selectedDivision = req.query.selectedDivision;
     const requestBody = req.body;
     const { id } = req.params;
 
-    if (selectingDivision === "true") {
-        const division = await DivisionModel.findOne({
-            _id: requestBody.selectedDivision,
-        });
-        division._requestedUserIds.push(new mongoose.Types.ObjectId(id));
-        await division.save();
-        const updatedUserDivision = await UserModel.findOneAndUpdate(
-            { _id: id },
-            { requestedDivision: requestBody.selectedDivision },
-            {
-                new: true,
-            }
-        ).populate("requestedDivision");
+    // if (selectingDivision === "true") {
+    //     const division = await DivisionModel.findOne({
+    //         _id: requestBody.selectedDivision,
+    //     });
+    //     division._requestedUserIds.push(new mongoose.Types.ObjectId(id));
+    //     await division.save();
+    //     const updatedUserDivision = await UserModel.findOneAndUpdate(
+    //         { _id: id },
+    //         { requestedDivision: requestBody.selectedDivision },
+    //         {
+    //             new: true,
+    //         }
+    //     ).populate("requestedDivision");
 
-        return res.send({
-            success: `You have sent a request to join the ${division.name} division.`,
-            currentUser: updatedUserDivision,
-        });
-    }
+    //     return res.send({
+    //         success: `You have sent a request to join the ${division.name} division.`,
+    //         currentUser: updatedUserDivision,
+    //     });
+    // }
 
     return res.send({
         selectingdivision: selectingDivision,
