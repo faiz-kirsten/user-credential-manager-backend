@@ -1,8 +1,8 @@
 import express from "express";
-import { getDivision } from "../controllers/divisionController.js";
+import { getDivisions } from "../controllers/divisionController.js";
 
 const router = express.Router();
 
-router.route("/:id").get(getDivision);
+router.get("/", getDivisions);
 
 export default router;

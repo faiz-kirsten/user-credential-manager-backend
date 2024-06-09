@@ -156,3 +156,43 @@ export const getUserCredentials = async (req, res) => {
         currentUser: decoded,
     });
 };
+
+export const updateUser = async (req, res) => {
+    if (!req.headers["authorization"]?.startsWith("Bearer "))
+        return res.sendStatus(401);
+    // Extracting the JWT token from the request headers
+    const token = req.headers["authorization"].split(" ")[1];
+    if (token === "")
+        return res.status(401).send({ message: "Invalid Auth Token!" });
+    const decoded = verifyJWT(token);
+    if (decoded === false)
+        return res.status(401).send({ message: "Invalid Auth Token!" });
+    console.log(decoded);
+    const selectingDivision = req.query.selectingDivision;
+    // const selectedDivision = req.query.selectedDivision;
+    const requestBody = req.body;
+    const { id } = req.params;
+
+    if (selectingDivision === "true") {
+        const division = await DivisionModel.findOne({
+            _id: requestBody.selectedDivision,
+        });
+        division._requestedUserIds.push(new mongoose.Types.ObjectId(id));
+        await division.save();
+        await UserModel.findOneAndUpdate(
+            { _id: id },
+            { requestedDivision: requestBody.selectedDivision }
+        );
+
+        return res.send({
+            success: `You have sent a request to join the ${division.name} division.`,
+        });
+    }
+
+    return res.send({
+        selectingdivision: selectingDivision,
+        reqBody: requestBody,
+        selectedDivision: selectedDivision,
+        currentUserId: id,
+    });
+};

@@ -15,7 +15,7 @@ export const handleLogin = async (req, res) => {
 
     const foundUser = await UserModel.findOne({
         username: enteredUsername,
-    });
+    }).populate("requestedDivision");
 
     if (!foundUser) return res.status(403).send({ invalid: true }); //Unauthorized
 
