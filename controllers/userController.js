@@ -182,9 +182,69 @@ export const updateUser = async (req, res) => {
     const decoded = verifyJWT(token);
     if (decoded === false)
         return res.status(401).send({ message: "Invalid Auth Token!" });
-    console.log(decoded);
+    // console.log(decoded);
     const requestBody = req.body;
+
+    // verify user roles
+    const validRole = verifyRoles(decoded.roles, [ROLES_LIST[2]]);
+
     const { id } = req.params;
+    const isCurrentUser = req.query.currentUser;
+
+    // console.log(validRole);
+    if (!validRole && id !== decoded._id)
+        return res.status(403).send({
+            message: "Unauthorized",
+        });
+
+    if (isCurrentUser === "true") {
+        if (
+            requestBody.requestedDivision ||
+            requestBody.division ||
+            requestBody.roles
+        )
+            return res.status(403).send({
+                message: "Unauthorized",
+            });
+    }
+
+    console.log(requestBody);
+
+    if (requestBody.accept) {
+        const updatedProperties = {
+            ...requestBody.properties,
+            division: new mongoose.Types.ObjectId(
+                requestBody.properties.division
+            ),
+        };
+        console.log(updatedProperties);
+        const updateUser = await UserModel.findOneAndUpdate(
+            { _id: requestBody.userId },
+            updatedProperties,
+            {
+                new: true,
+            }
+        );
+        const division = await DivisionModel.findOne({
+            _id: decoded.division,
+        });
+        division._requestedUserIds.pull(
+            new mongoose.Types.ObjectId(requestBody.userId)
+        );
+        division._userIds.push(new mongoose.Types.ObjectId(requestBody.userId));
+        await division.save();
+        console.log(division);
+    }
+    // if (requestBody.properties.requestedDivision === null) {
+    //     console.log(requestBody.properties.requestedDivision);
+    // }
+    // const updateUser = await UserModel.findOneAndUpdate(
+    //     { _id: requestBody.userId },
+    //     requestBody.properties,
+    //     {
+    //         new: true,
+    //     }
+    // );
 
     // if (selectingDivision === "true") {
     //     const division = await DivisionModel.findOne({
@@ -207,8 +267,8 @@ export const updateUser = async (req, res) => {
     // }
 
     return res.send({
-        selectingdivision: selectingDivision,
         reqBody: requestBody,
-        currentUserId: id,
+        currentUser: decoded,
+        isCurrentUser,
     });
 };
