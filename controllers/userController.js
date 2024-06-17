@@ -5,6 +5,7 @@ import { CredentialModel } from "../models/Credential.js";
 import { verifyJWT } from "../utils/verifyJWT.js";
 import { verifyRoles } from "../utils/verifyRoles.js";
 import { DivisionModel } from "../models/Division.js";
+import bcrypt from "bcrypt";
 
 // allow normal users to add credentials
 // allow management & admin users to:
@@ -60,7 +61,11 @@ export const getUser = async (req, res) => {
 
     const foundUser = await UserModel.findOne({
         _id: id,
-    }).populate("division");
+    })
+        .populate("division")
+        .populate("requestedDivision");
+    const revealedPassword = "";
+    console.log(foundUser);
     if (!foundUser) return res.status(400).send({ message: "Invalid user id" });
     return res.status(200).send(foundUser);
 };
@@ -218,7 +223,7 @@ export const updateUser = async (req, res) => {
             ),
         };
         console.log(updatedProperties);
-        const updateUser = await UserModel.findOneAndUpdate(
+        await UserModel.findOneAndUpdate(
             { _id: requestBody.userId },
             updatedProperties,
             {
@@ -234,41 +239,66 @@ export const updateUser = async (req, res) => {
         division._userIds.push(new mongoose.Types.ObjectId(requestBody.userId));
         await division.save();
         console.log(division);
+        return res.status(200).send({
+            message: "Success, user added to the division!",
+        });
     }
-    // if (requestBody.properties.requestedDivision === null) {
-    //     console.log(requestBody.properties.requestedDivision);
-    // }
-    // const updateUser = await UserModel.findOneAndUpdate(
-    //     { _id: requestBody.userId },
-    //     requestBody.properties,
-    //     {
-    //         new: true,
-    //     }
-    // );
 
-    // if (selectingDivision === "true") {
-    //     const division = await DivisionModel.findOne({
-    //         _id: requestBody.selectedDivision,
-    //     });
-    //     division._requestedUserIds.push(new mongoose.Types.ObjectId(id));
-    //     await division.save();
-    //     const updatedUserDivision = await UserModel.findOneAndUpdate(
-    //         { _id: id },
-    //         { requestedDivision: requestBody.selectedDivision },
-    //         {
-    //             new: true,
-    //         }
-    //     ).populate("requestedDivision");
+    const userToUpdate = await UserModel.findOne({
+        _id: id,
+    });
+    console.log(userToUpdate);
+    let updatedProperties;
+    if (
+        requestBody.properties.previousPassword &&
+        requestBody.properties.updatedPassword
+    ) {
+        console.log(requestBody.properties.previousPassword);
+        console.log(requestBody.properties.updatedPassword);
+        console.log(userToUpdate.password);
+        const passwordsMatch = await bcrypt.compare(
+            requestBody.properties.previousPassword,
+            userToUpdate.password
+        );
 
-    //     return res.send({
-    //         success: `You have sent a request to join the ${division.name} division.`,
-    //         currentUser: updatedUserDivision,
-    //     });
-    // }
+        if (passwordsMatch) {
+            const updatedPassword = requestBody.properties.updatedPassword;
+            updatedProperties = {
+                name: requestBody.properties.name,
+                surname: requestBody.properties.surname,
+                title: requestBody.properties.name,
+                username: requestBody.properties.username,
+                password: await bcrypt.hash(updatedPassword, 10),
+            };
+        } else {
+            return res.status(401).send({
+                message: "Invalid Previous Password",
+                ok: false,
+            });
+        }
+    }
 
-    return res.send({
-        reqBody: requestBody,
-        currentUser: decoded,
-        isCurrentUser,
+    updatedProperties = {
+        name: requestBody.properties.name,
+        surname: requestBody.properties.surname,
+        title: requestBody.properties.title,
+        username: requestBody.properties.username,
+    };
+
+    console.log(updatedProperties);
+
+    const updatedUser = await UserModel.findOneAndUpdate(
+        { _id: id },
+        updatedProperties,
+        {
+            new: true,
+        }
+    );
+
+    console.log(updatedUser);
+
+    return res.status(200).send({
+        message: "Information updated successfully",
+        ok: true,
     });
 };
