@@ -195,7 +195,8 @@ export const updateUser = async (req, res) => {
 
     const { id } = req.params;
     const isCurrentUser = req.query.currentUser;
-
+    console.log(requestBody);
+    console.log("--");
     // console.log(validRole);
     if (!validRole && id !== decoded._id)
         return res.status(403).send({
@@ -212,8 +213,6 @@ export const updateUser = async (req, res) => {
                 message: "Unauthorized",
             });
     }
-
-    console.log(requestBody);
 
     if (requestBody.accept) {
         const updatedProperties = {
@@ -268,6 +267,7 @@ export const updateUser = async (req, res) => {
                 surname: requestBody.properties.surname,
                 title: requestBody.properties.name,
                 username: requestBody.properties.username,
+                roles: requestBody.properties.roles,
                 password: await bcrypt.hash(updatedPassword, 10),
             };
         } else {
@@ -283,6 +283,7 @@ export const updateUser = async (req, res) => {
         surname: requestBody.properties.surname,
         title: requestBody.properties.title,
         username: requestBody.properties.username,
+        roles: requestBody.properties.roles,
     };
 
     console.log(updatedProperties);
@@ -298,7 +299,7 @@ export const updateUser = async (req, res) => {
     console.log(updatedUser);
 
     return res.status(200).send({
-        message: "Information updated successfully",
+        message: "Infomation updating Successful",
         ok: true,
     });
 };
