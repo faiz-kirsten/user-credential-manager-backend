@@ -265,11 +265,25 @@ export const updateUser = async (req, res) => {
             updatedProperties = {
                 name: requestBody.properties.name,
                 surname: requestBody.properties.surname,
-                title: requestBody.properties.name,
+                title: requestBody.properties.title,
                 username: requestBody.properties.username,
                 roles: requestBody.properties.roles,
                 password: await bcrypt.hash(updatedPassword, 10),
             };
+            const updatedUser = await UserModel.findOneAndUpdate(
+                { _id: id },
+                updatedProperties,
+                {
+                    new: true,
+                }
+            );
+
+            console.log(updatedUser);
+
+            return res.status(200).send({
+                message: "Infomation updating Successful",
+                ok: true,
+            });
         } else {
             return res.status(401).send({
                 message: "Invalid Previous Password",
